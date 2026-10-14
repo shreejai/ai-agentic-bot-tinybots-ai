@@ -24,11 +24,13 @@ import {
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useContext } from "react";
+import { useRouter } from "next/navigation";
 
 export function AppSidebar() {
   const path = usePathname();
 
   const { userDetail, setUserDetail } = useContext(UserDetailContext);
+  const router = useRouter();
 
   return (
     <Sidebar>
@@ -40,7 +42,8 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>Workspace</SidebarGroupLabel>
           <SidebarMenuButton
-            className={`h-12 gap-3 hover:bg-slate-100 ${path.includes("/dashboard") ? "bg-slate-100" : ""}`}
+            onClick={() => router.push("/dashboard")}
+            className={`h-12 gap-3 hover:bg-slate-100 ${path == "/dashboard" ? "bg-slate-100" : ""}`}
           >
             <div className="flex h-9 w-9 shrink-0 bg-blue-100 items-center justify-center rounded-lg">
               <AppWindow className="h-4.5 w-4.5 text-blue-900" />
@@ -48,7 +51,8 @@ export function AppSidebar() {
             <span>Dashboard</span>
           </SidebarMenuButton>
           <SidebarMenuButton
-            className={`h-12 gap-3 hover:bg-slate-100 ${path.includes("/dashboard/agents") ? "bg-slate-100" : ""}`}
+            onClick={() => router.push("/dashboard/agents")}
+            className={`h-12 gap-3 hover:bg-slate-100 ${path == "/dashboard/agents" ? "bg-slate-100" : ""}`}
           >
             <div className="flex h-9 w-9 shrink-0 bg-green-100 items-center justify-center rounded-lg">
               <Bot className="h-4.5 w-4.5 text-green-900" />
@@ -56,7 +60,8 @@ export function AppSidebar() {
             <span>Agents</span>
           </SidebarMenuButton>
           <SidebarMenuButton
-            className={`h-12 gap-3 hover:bg-slate-100 ${path.includes("/dashboard/logs") ? "bg-slate-100" : ""}`}
+            onClick={() => router.push("/dashboard/logs")}
+            className={`h-12 gap-3 hover:bg-slate-100 ${path == "/dashboard/logs" ? "bg-slate-100" : ""}`}
           >
             <div className="flex h-9 w-9 shrink-0 bg-red-100 items-center justify-center rounded-lg">
               <Play className="h-4.5 w-4.5 text-red-900" />
@@ -64,7 +69,8 @@ export function AppSidebar() {
             <span>Logs</span>
           </SidebarMenuButton>
           <SidebarMenuButton
-            className={`h-12 gap-3 hover:bg-slate-100 ${path.includes("/dashboard/integrations") ? "bg-slate-100" : ""}`}
+            onClick={() => router.push("/dashboard/integrations")}
+            className={`h-12 gap-3 hover:bg-slate-100 ${path == "/dashboard/integrations" ? "bg-slate-100" : ""}`}
           >
             <div className="flex h-9 w-9 shrink-0 bg-purple-100 items-center justify-center rounded-lg">
               <Blocks className="h-4.5 w-4.5 text-purple-900" />
@@ -72,7 +78,8 @@ export function AppSidebar() {
             <span>Integrations</span>
           </SidebarMenuButton>
           <SidebarMenuButton
-            className={`h-12 gap-3 hover:bg-slate-100 ${path.includes("/dashboard/templates") ? "bg-slate-100" : ""}`}
+            onClick={() => router.push("/dashboard/templates")}
+            className={`h-12 gap-3 hover:bg-slate-100 ${path == "/dashboard/templates" ? "bg-slate-100" : ""}`}
           >
             <div className="flex h-9 w-9 shrink-0 bg-orange-100 items-center justify-center rounded-lg">
               <Layers className="h-4.5 w-4.5 text-orange-900" />
@@ -83,7 +90,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>Users</SidebarGroupLabel>
           <SidebarMenuButton
-            className={`h-12 gap-3 hover:bg-slate-100 ${path.includes("/dashboard/settings") ? "bg-slate-100" : ""}`}
+            className={`h-12 gap-3 hover:bg-slate-100 ${path == "/dashboard/settings" ? "bg-slate-100" : ""}`}
           >
             <div className="flex h-9 w-9 shrink-0 bg-gray-100 items-center justify-center rounded-lg">
               <Settings className="h-4.5 w-4.5 text-gray-900" />
@@ -91,7 +98,7 @@ export function AppSidebar() {
             <span>Settings</span>
           </SidebarMenuButton>
           <SidebarMenuButton
-            className={`h-12 gap-3 hover:bg-slate-100 ${path.includes("/dashboard/settings") ? "bg-slate-100" : ""}`}
+            className={`h-12 gap-3 hover:bg-slate-100 ${path == "/dashboard/settings" ? "bg-slate-100" : ""}`}
           >
             <div className="flex h-9 w-9 shrink-0 bg-yellow-100 items-center justify-center rounded-lg">
               <User2 className="h-4.5 w-4.5 text-yellow-900" />
