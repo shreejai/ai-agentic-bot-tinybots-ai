@@ -1,7 +1,18 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { ArrowUp, BriefcaseBusiness, Mail, Plus, Search } from "lucide-react";
-import React, { useState } from "react";
+import axios from "axios";
+import {
+  ArrowUp,
+  BriefcaseBusiness,
+  Loader2,
+  Mail,
+  Plus,
+  Search,
+} from "lucide-react";
+import { useState } from "react";
+import AiAgentQuestions from "./AiAgentQuestions";
+import { toast } from "@/components/ui/toast";
+import NewAgentCard from "./NewAgentCard";
 
 const quickSuggestions = [
   {
@@ -62,8 +73,88 @@ const templates = [
   },
 ];
 
+type AgentConfigResp = {
+  status: "needs_clarification" | "ready";
+  clarificationQuestions: ClarificationQuestion[];
+  config: any;
+};
+
+export type ClarificationQuestion = {
+  id: string;
+  question: string;
+  type: "single_select" | "multi_select" | "text" | "number";
+  options: string[];
+  allowCustom: boolean;
+  customPlaceholder: string;
+};
+
+export type CreatedAgentType = {
+  id: number;
+  userEmail: string;
+  agentId: string;
+  name: string;
+  agentImage: string;
+  description: string;
+  instructions: string;
+  objective: string;
+  tools: any;
+  skills: string[];
+  schedule: AgentSchedule;
+  outputFormat: string;
+  status: string; //Active, Pause
+  createdAt: string;
+  composioSessionId?: string;
+};
+
+export type AgentSchedule = {
+  type: "once" | "recurring" | "manual";
+  frequency?: "hourly" | "daily" | "weekly" | "monthly";
+  time?: string;
+};
+
 const CreateAgent = () => {
   const [prompt, setPrompt] = useState("");
+  const [configResult, setConfigResult] = useState<AgentConfigResp | null>(
+    null,
+  );
+  const [createdAgent, setCreatedAgent] = useState<CreatedAgentType | null>(
+    null,
+  );
+  const [loading, setLoading] = useState(false);
+
+  const getBrowserTimezone = () => {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+  };
+
+  const onSubmit = async () => {
+    setLoading(true);
+    const result = await axios.post("/api/agent/configure", {
+      prompt: prompt,
+    });
+
+    console.log(result.data);
+    setConfigResult(result.data);
+    if (result.data?.status_ == "ready") {
+      setCreatedAgent(result.data);
+    }
+    setLoading(false);
+  };
+
+  const onComplete = async (ans: any) => {
+    console.log("OnComplete", ans);
+    setConfigResult(null);
+    const updatedPrompt = prompt + "\n" + JSON.stringify(ans);
+
+    setLoading(true);
+    const result = await axios.post("/api/agent/configure", {
+      prompt: updatedPrompt,
+    });
+
+    console.log(result.data);
+    setConfigResult(result.data);
+    setCreatedAgent(result.data);
+    setLoading(false);
+  };
   return (
     <div className="mt-5">
       <div>
@@ -89,8 +180,13 @@ const CreateAgent = () => {
               <Plus />
             </Button>
           </div>
-          <Button size={"icon"} className="size-9 rounded-full bg-purple-600">
-            <ArrowUp />{" "}
+          <Button
+            disabled={loading}
+            onClick={onSubmit}
+            size={"icon"}
+            className="size-9 rounded-full bg-purple-600"
+          >
+            {loading ? <Loader2 className="animate-spin" /> : <ArrowUp />}{" "}
           </Button>
         </div>
       </div>
@@ -108,30 +204,51 @@ const CreateAgent = () => {
         ))}
       </div>
 
-      <div className="mt-10">
-        <h2 className="flex text-lg justify-between items-center font-semibold">
-          Get Started <span className="text-sm font-medium ">View All</span>
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3 ">
-          {templates.map((template) => (
-            <div
-              className={`border rounded-2xl p-5 hover:cursor-pointer hover:shadow-lg ${template.border} ${template.glow}`}
-            >
-              <template.icon
-                className={`size-12 p-2 ${template.iconBg} ${template.iconColor} rounded-xl `}
-              />
-              <div className="mt-6">
-                <h2 className="font-semibold text-foreground">
-                  {template.title}
-                </h2>
-                <p className="text-sm mt-2 leading-5 text-muted-foreground">
-                  {template.description}
-                </p>
-              </div>
-            </div>
-          ))}
+      {loading ? (
+        <div className="flex items-center gap-2 p-5 mt-7 border rounded-xl shadow">
+          <Loader2 className="animate-spin" />
+          <h2>Generating Agent Config...</h2>
         </div>
-      </div>
+      ) : (
+        !configResult && (
+          <div className="mt-10">
+            <h2 className="flex text-lg justify-between items-center font-semibold">
+              Get Started <span className="text-sm font-medium ">View All</span>
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3 ">
+              {templates.map((template, index) => (
+                <div
+                  key={index}
+                  className={`border rounded-2xl p-5 hover:cursor-pointer hover:shadow-lg ${template.border} ${template.glow}`}
+                >
+                  <template.icon
+                    className={`size-12 p-2 ${template.iconBg} ${template.iconColor} rounded-xl `}
+                  />
+                  <div className="mt-6">
+                    <h2 className="font-semibold text-foreground">
+                      {template.title}
+                    </h2>
+                    <p className="text-sm mt-2 leading-5 text-muted-foreground">
+                      {template.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      )}
+
+      {configResult && configResult.status == "needs_clarification" && (
+        <div className="p-5 border rounded-2xl mt-7">
+          <AiAgentQuestions
+            questionList={configResult.clarificationQuestions}
+            onComplete={(resp: any) => onComplete(resp)}
+          />
+        </div>
+      )}
+      {/* <p>{JSON.stringify(configResult)}</p> */}
+      {createdAgent && <NewAgentCard createdAgent={createdAgent} />}
     </div>
   );
 };
